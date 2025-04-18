@@ -30,17 +30,17 @@ class PaymentController extends Controller
         if ($request->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         // Check if payment is required
         if ($request->status !== 'payment_required') {
             return redirect()->route('requests.show', $request)
                 ->with('error', 'No payment is required for this request at this time.');
         }
-        
+
         $request->load(['service']);
         return view('payments.show', compact('request'));
     }
-    
+
     /**
      * Initiate payment process
      */
@@ -53,29 +53,47 @@ public function process(Request $httpRequest, ServiceRequest $request)
     if ($request->user_id !== Auth::id()) {
         abort(403, 'Unauthorized action.');
     }
-    
+
     // Validate the payment method
     $validated = $httpRequest->validate([
         'payment_method' => 'required|in:gcash,paymaya',
     ]);
-    
+
     try {
         DB::beginTransaction();
-        
-        // Create a payment record in our database
-        $payment = Payment::create([
-            'request_id' => $request->id,
-            'reference_number' => 'PAY-' . strtoupper(Str::random(10)),
-            'amount' => $request->service->fee,
-            'payment_method' => $validated['payment_method'],
-            'status' => 'pending',
-            'payment_details' => [
-                'initiated_at' => now()->toIso8601String(),
-                'user_ip' => $httpRequest->ip(),
-                'user_agent' => $httpRequest->userAgent(),
-            ]
-        ]);
-        
+
+        // Check if there is an existing payment for this request (pending or failed)
+        $payment = Payment::where('request_id', $request->id)
+            ->whereIn('status', ['pending', 'failed'])
+            ->first();
+
+        if ($payment) {
+            // Update the existing payment record
+            $payment->update([
+                'payment_method' => $validated['payment_method'],
+                'status' => 'pending', // Reset status to pending
+                'payment_details' => array_merge($payment->payment_details ?? [], [
+                    'updated_at' => now()->toIso8601String(),
+                    'user_ip' => $httpRequest->ip(),
+                    'user_agent' => $httpRequest->userAgent(),
+                ])
+            ]);
+        } else {
+            // Create a new payment record if no existing payment exists
+            $payment = Payment::create([
+                'request_id' => $request->id,
+                'reference_number' => 'PAY-' . strtoupper(Str::random(10)),
+                'amount' => $request->service->fee,
+                'payment_method' => $validated['payment_method'],
+                'status' => 'pending',
+                'payment_details' => [
+                    'initiated_at' => now()->toIso8601String(),
+                    'user_ip' => $httpRequest->ip(),
+                    'user_agent' => $httpRequest->userAgent(),
+                ]
+            ]);
+        }
+
         // Create a source in Paymongo for the selected payment method
         $source = $this->paymongoService->createSource(
             $validated['payment_method'],
@@ -86,18 +104,18 @@ public function process(Request $httpRequest, ServiceRequest $request)
                 'phone' => Auth::user()->mobile_number ?? ''
             ]
         );
-        
+
         if (!$source) {
             throw new \Exception('Failed to create payment source.');
         }
-        
+
         // Log the source creation
         Log::info('Payment source created', [
             'source_id' => $source['id'],
             'payment_id' => $payment->id,
             'method' => $validated['payment_method']
         ]);
-        
+
         // Update payment with Paymongo source details
         $payment->update([
             'payment_details' => array_merge($payment->payment_details ?? [], [
@@ -108,16 +126,16 @@ public function process(Request $httpRequest, ServiceRequest $request)
                 'failed_url' => $source['attributes']['redirect']['failed']
             ])
         ]);
-        
+
         // Store the checkout URL in session to help with recovery if callback fails
         session(['last_payment_checkout' => $source['attributes']['redirect']['checkout_url']]);
         session(['last_payment_id' => $payment->id]);
-        
+
         DB::commit();
-        
+
         // Redirect user to the payment provider's checkout page
         return redirect($source['attributes']['redirect']['checkout_url']);
-        
+
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error('Payment Processing Error', [
@@ -125,11 +143,11 @@ public function process(Request $httpRequest, ServiceRequest $request)
             'request_id' => $request->id,
             'trace' => $e->getTraceAsString()
         ]);
-        
+
         return redirect()->back()->with('error', 'There was an error processing your payment. Please try again later.');
     }
 }
-    
+
     /**
      * Handle successful payment callback
      */
@@ -146,7 +164,7 @@ public function success(Request $httpRequest)
         $data = $httpRequest->input('data');
         $sourceId = is_array($data) && isset($data['id']) ? $data['id'] : null;
     }
-    
+
     // Log what we're receiving for debugging
     Log::info('Payment Success Callback received', [
         'query' => $httpRequest->query(),
@@ -162,11 +180,11 @@ public function success(Request $httpRequest)
             })
             ->latest()
             ->first();
-            
+
         if ($payment) {
             // If we found a pending payment, use its source ID from payment details
             $sourceId = $payment->payment_details['source_id'] ?? null;
-            
+
             if (!$sourceId) {
                 return redirect()->route('dashboard')
                     ->with('error', 'Payment verification failed. Please contact support with your transaction details.');
@@ -180,18 +198,18 @@ public function success(Request $httpRequest)
     try {
         // Retrieve the source to check payment status
         $source = $this->paymongoService->retrieveSource($sourceId);
-        
+
         if (!$source) {
             throw new \Exception('Failed to retrieve payment source.');
         }
-        
+
         // Find the payment by source ID
         $payment = Payment::whereJsonContains('payment_details->source_id', $sourceId)->first();
-        
+
         if (!$payment) {
             throw new \Exception('Payment record not found.');
         }
-        
+
         // Check if source status is chargeable/paid
         if ($source['attributes']['status'] === 'chargeable' || $source['attributes']['status'] === 'paid') {
             // Update payment status
@@ -203,13 +221,16 @@ public function success(Request $httpRequest)
                     'completed_at' => now()->toIso8601String()
                 ])
             ]);
-            
+
             // Update request status
             $request = $payment->request;
             $request->update([
                 'status' => 'processing',
             ]);
-            
+
+                        // Clear session data related to payment
+                        session()->forget(['last_payment_id', 'last_payment_checkout']);
+
             // Create notification
             \App\Models\Notification::create([
                 'user_id' => Auth::id(),
@@ -220,7 +241,7 @@ public function success(Request $httpRequest)
                 'is_sent' => true,
                 'sent_at' => now(),
             ]);
-            
+
             return redirect()->route('requests.show', $request)
                 ->with('success', 'Payment successful! Your request is now being processed.');
         } else {
@@ -232,7 +253,7 @@ public function success(Request $httpRequest)
                     'failure_reason' => 'Source status not chargeable: ' . $source['attributes']['status']
                 ])
             ]);
-            
+
             throw new \Exception('Payment was not completed successfully. Status: ' . $source['attributes']['status']);
         }
     } catch (\Exception $e) {
@@ -240,12 +261,12 @@ public function success(Request $httpRequest)
             'message' => $e->getMessage(),
             'source_id' => $sourceId
         ]);
-        
+
         return redirect()->route('dashboard')
             ->with('error', 'There was an error processing your payment. Please contact support.');
     }
 }
-    
+
  /**
  * Handle failed payment callback
  */
@@ -253,18 +274,18 @@ public function failed(Request $httpRequest)
 {
     // Similar improvements as in the success method
     $sourceId = $httpRequest->source_id ?? $httpRequest->source ?? $httpRequest->id ?? $httpRequest->query('source_id');
-    
+
     // Log what we're receiving for debugging
     Log::info('Payment Failed Callback received', [
         'query' => $httpRequest->query(),
         'request' => $httpRequest->all(),
         'source_id_found' => $sourceId
     ]);
-    
+
     if ($sourceId) {
         // Find the payment by source ID
         $payment = Payment::whereJsonContains('payment_details->source_id', $sourceId)->first();
-        
+
         if ($payment) {
             $payment->update([
                 'status' => 'failed',
@@ -274,7 +295,7 @@ public function failed(Request $httpRequest)
                     'callback_data' => $httpRequest->all()
                 ])
             ]);
-            
+
             return redirect()->route('requests.show', $payment->request)
                 ->with('error', 'Your payment was not completed. Please try again or contact support for assistance.');
         }
@@ -286,7 +307,7 @@ public function failed(Request $httpRequest)
             })
             ->latest()
             ->first();
-            
+
         if ($payment) {
             $payment->update([
                 'status' => 'failed',
@@ -296,16 +317,16 @@ public function failed(Request $httpRequest)
                     'callback_data' => $httpRequest->all()
                 ])
             ]);
-            
+
             return redirect()->route('requests.show', $payment->request)
                 ->with('error', 'Your payment was not completed. Please try again.');
         }
     }
-    
+
     return redirect()->route('dashboard')
         ->with('error', 'Your payment was not completed. Please try again later.');
 }
-    
+
     /**
      * Check payment status via AJAX (for polling)
      */
@@ -313,20 +334,20 @@ public function failed(Request $httpRequest)
     {
         $paymentId = $httpRequest->payment_id;
         $payment = Payment::find($paymentId);
-        
+
         if (!$payment || $payment->request->user_id !== Auth::id()) {
             return response()->json(['error' => 'Payment not found'], 404);
         }
-        
+
         return response()->json([
             'status' => $payment->status,
             'paid' => $payment->status === 'paid',
-            'redirect_url' => $payment->status === 'paid' 
-                ? route('requests.show', $payment->request) 
+            'redirect_url' => $payment->status === 'paid'
+                ? route('requests.show', $payment->request)
                 : null
         ]);
     }
-    
+
     /**
      * Webhook endpoint for Paymongo callbacks
      * Note: This needs to be configured in your Paymongo dashboard
@@ -334,18 +355,18 @@ public function failed(Request $httpRequest)
     public function webhook(Request $httpRequest)
     {
         // Verify webhook signature (highly recommended in production)
-        
+
         $payload = $httpRequest->all();
         Log::info('Paymongo Webhook Received', $payload);
-        
+
         // Process webhook based on event type
         // This is just a simplified example
         if (isset($payload['data']['attributes']['type']) && $payload['data']['attributes']['type'] === 'source.chargeable') {
             $sourceId = $payload['data']['attributes']['data']['id'] ?? null;
-            
+
             if ($sourceId) {
                 $payment = Payment::whereJsonContains('payment_details->source_id', $sourceId)->first();
-                
+
                 if ($payment) {
                     // Update payment status
                     $payment->update([
@@ -357,13 +378,13 @@ public function failed(Request $httpRequest)
                             'webhook_received' => true
                         ])
                     ]);
-                    
+
                     // Update request status
                     $payment->request->update(['status' => 'processing']);
                 }
             }
         }
-        
+
         return response()->json(['success' => true]);
     }
 
@@ -374,30 +395,30 @@ public function recoverPayment(Request $request)
 {
     // Check if we have session data about the last payment
     $paymentId = session('last_payment_id');
-    
+
     if (!$paymentId) {
         return redirect()->route('dashboard')
             ->with('error', 'No payment information found to recover.');
     }
-    
+
     $payment = Payment::find($paymentId);
-    
+
     if (!$payment || $payment->request->user_id !== Auth::id()) {
         return redirect()->route('dashboard')
             ->with('error', 'Invalid payment recovery attempt.');
     }
-    
+
     // If the payment is still pending, let's check its status
     if ($payment->status === 'pending' && isset($payment->payment_details['source_id'])) {
         $sourceId = $payment->payment_details['source_id'];
-        
+
         try {
             $source = $this->paymongoService->retrieveSource($sourceId);
-            
+
             if (!$source) {
                 throw new \Exception('Failed to retrieve payment source.');
             }
-            
+
             // Check if source status indicates payment was completed
             if ($source['attributes']['status'] === 'chargeable' || $source['attributes']['status'] === 'paid') {
                 // Update payment status
@@ -410,13 +431,13 @@ public function recoverPayment(Request $request)
                         'recovered' => true
                     ])
                 ]);
-                
+
                 // Update request status
                 $request = $payment->request;
                 $request->update([
                     'status' => 'processing',
                 ]);
-                
+
                 // Create notification
                 \App\Models\Notification::create([
                     'user_id' => Auth::id(),
@@ -427,10 +448,10 @@ public function recoverPayment(Request $request)
                     'is_sent' => true,
                     'sent_at' => now(),
                 ]);
-                
+
                 // Clear session data
                 session()->forget(['last_payment_id', 'last_payment_checkout']);
-                
+
                 return redirect()->route('requests.show', $request)
                     ->with('success', 'Payment verified! Your request is now being processed.');
             } else {
@@ -443,7 +464,7 @@ public function recoverPayment(Request $request)
                 'message' => $e->getMessage(),
                 'payment_id' => $paymentId
             ]);
-            
+
             return redirect()->route('requests.show', $payment->request)
                 ->with('error', 'There was an error verifying your payment. Please contact support.');
         }

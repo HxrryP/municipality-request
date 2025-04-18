@@ -29,14 +29,14 @@
                             <h3 class="text-lg font-semibold text-gray-900">{{ $request->service->name }}</h3>
                             <p class="mt-1 text-sm text-gray-600">{{ $request->service->description }}</p>
                         </div>
-                        
+
                         <div class="flex flex-col items-end">
                             <p class="text-sm text-gray-600">Submitted on</p>
                             <p class="font-medium text-gray-900">{{ $request->created_at->format('F d, Y') }}</p>
                             <p class="text-xs text-gray-500">{{ $request->created_at->format('h:i A') }}</p>
                         </div>
                     </div>
-                    
+
                     <!-- Request Status Timeline -->
                     <div class="mt-6">
                         @php
@@ -49,12 +49,12 @@
 
                         <div class="relative">
                             <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
-                                <div style="width: {{ $progressPercentage }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center 
+                                <div style="width: {{ $progressPercentage }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center
                                     @if($request->status === 'completed') bg-green-500
                                     @elseif($request->status === 'rejected' || $request->status === 'cancelled') bg-red-500
                                     @else bg-blue-500 @endif"></div>
                             </div>
-                            
+
                             <div class="mt-2 grid grid-cols-5 text-xs text-gray-600">
                                 <div class="text-left {{ $currentStatusIndex >= 0 ? 'font-medium text-blue-600' : '' }}">Submitted</div>
                                 <div class="text-center {{ $currentStatusIndex >= 1 ? 'font-medium text-blue-600' : '' }}">Payment</div>
@@ -66,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-6">
@@ -74,28 +74,28 @@
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Request Details</h3>
-                            
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <div class="text-sm text-gray-500">Tracking Number</div>
                                     <div class="font-medium">{{ $request->tracking_number }}</div>
                                 </div>
-                                
+
                                 <div>
                                     <div class="text-sm text-gray-500">Service Category</div>
                                     <div class="font-medium">{{ $request->service->category->name ?? 'Uncategorized' }}</div>
                                 </div>
-                                
+
                                 <div>
                                     <div class="text-sm text-gray-500">Processing Time</div>
                                     <div class="font-medium">{{ $request->service->processing_days }} day(s)</div>
                                 </div>
-                                
+
                                 <div>
                                     <div class="text-sm text-gray-500">Service Fee</div>
                                     <div class="font-medium">₱{{ number_format($request->service->fee, 2) }}</div>
                                 </div>
-                                
+
                                 @if($request->is_renewal)
                                 <div class="md:col-span-2">
                                     <div class="text-sm text-gray-500">Renewal of Request</div>
@@ -113,16 +113,16 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Form Submission Details -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Form Information</h3>
-                            
+
                             <!-- Personal Information Section -->
                             <div class="mb-6">
                                 <h4 class="text-md font-medium text-gray-800 mb-3 pb-2 border-b border-gray-200">Personal Information</h4>
-                                
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     @if(isset($request->form_data['name']))
                                     <div>
@@ -130,21 +130,21 @@
                                         <div class="font-medium">{{ $request->form_data['name'] }}</div>
                                     </div>
                                     @endif
-                                    
+
                                     @if(isset($request->form_data['email']))
                                     <div>
                                         <div class="text-sm text-gray-500">Email Address</div>
                                         <div class="font-medium">{{ $request->form_data['email'] }}</div>
                                     </div>
                                     @endif
-                                    
+
                                     @if(isset($request->form_data['mobile']))
                                     <div>
                                         <div class="text-sm text-gray-500">Mobile Number</div>
                                         <div class="font-medium">{{ $request->form_data['mobile'] }}</div>
                                     </div>
                                     @endif
-                                    
+
                                     @if(isset($request->form_data['address']))
                                     <div class="md:col-span-2">
                                         <div class="text-sm text-gray-500">Address</div>
@@ -153,11 +153,11 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                             <!-- Service Specific Information Section -->
                             <div class="mb-6">
                                 <h4 class="text-md font-medium text-gray-800 mb-3 pb-2 border-b border-gray-200">Service Information</h4>
-                                
+
                                 <div class="space-y-4">
                                     @foreach($request->form_data as $key => $value)
                                         @if(!in_array($key, ['name', 'email', 'mobile', 'address']))
@@ -178,14 +178,14 @@
                         </div>
                     </div>
 
-                    
-                    
+
+
                     <!-- Submitted Documents -->
                     @if(isset($request->document_urls) && count($request->document_urls) > 0)
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Submitted Documents</h3>
-                            
+
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 @foreach($request->document_urls as $index => $url)
                                     <div class="border border-gray-200 rounded-md overflow-hidden">
@@ -195,7 +195,7 @@
                                                 @php
                                                     $extension = pathinfo($url, PATHINFO_EXTENSION);
                                                 @endphp
-                                                
+
                                                 @if(in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']))
                                                     <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -217,52 +217,50 @@
                         </div>
                     </div>
                     @endif
-                    
+
                     <!-- Comments/Remarks (if any) -->
-                    @if(isset($request->comments) && count($request->comments) > 0)
+                    @if(isset($request->remarks) && $request->remarks != '')
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Comments</h3>
-                            
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Remarks</h3>
+
                             <div class="space-y-4">
-                                @foreach($request->comments as $comment)
-                                    <div class="bg-gray-50 rounded-lg p-4">
-                                        <div class="flex items-start">
-                                            <div class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-gray-200 text-gray-600 mr-3">
-                                                <span class="text-sm font-medium">{{ substr($comment['user_name'] ?? 'User', 0, 1) }}</span>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        <div class="inline-flex items-center justify-center h-10 w-10 rounded-full bg-gray-200 text-gray-600 mr-3">
+                                            <span class="text-sm font-medium">{{ $request->updated_by ? substr($request->updated_by, 0, 1) : 'A' }}</span>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center">
+                                                <div class="font-medium text-gray-900">{{ $request->updated_by ?? 'Admin' }}</div>
+                                                @if(in_array($request->updated_role, ['admin', 'staff']))
+                                                    <span class="ml-2 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {{ ucfirst($request->updated_role) }}
+                                                    </span>
+                                                @endif
                                             </div>
-                                            <div>
-                                                <div class="flex items-center">
-                                                    <div class="font-medium text-gray-900">{{ $comment['user_name'] ?? 'User' }}</div>
-                                                    @if(isset($comment['user_role']) && in_array($comment['user_role'], ['admin', 'staff']))
-                                                        <span class="ml-2 px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                                            {{ ucfirst($comment['user_role']) }}
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <div class="text-sm text-gray-500">{{ isset($comment['created_at']) ? \Carbon\Carbon::parse($comment['created_at'])->format('M d, Y h:i A') : '' }}</div>
-                                                <div class="mt-2 text-sm text-gray-700">{{ $comment['content'] ?? '' }}</div>
-                                            </div>
+                                            <div class="text-sm text-gray-500">{{ \Carbon\Carbon::now()->format('M d, Y h:i A') }}</div>
+                                            <div class="mt-2 text-sm text-gray-700">{{ $request->remarks ?? '' }}</div>
                                         </div>
                                     </div>
-                                @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
                     @endif
                 </div>
-                
+
                 <!-- Side Panel -->
                 <div class="space-y-6">
                     <!-- Status Card -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Status Updates</h3>
-                            
+
                             <div class="relative pl-8 space-y-8 before:absolute before:top-0 before:bottom-0 before:left-4 before:border-l-2 before:border-gray-200">
                                 <!-- Status Item: Submitted -->
                                 <div class="relative">
-                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full 
+                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full
                                         @if($request->status !== 'cancelled' && $request->status !== 'rejected') bg-green-500 @else bg-gray-400 @endif
                                         flex items-center justify-center">
                                         <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -275,13 +273,12 @@
                                         <p class="mt-1 text-sm text-gray-600">Your request has been successfully submitted.</p>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Status Item: Payment Required (if applicable) -->
-                                @if($request->status === 'payment_required' || $request->payment)
+                                @if($request->payment)
                                 <div class="relative">
-                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full 
-                                        @if($request->payment && $request->payment->status === 'paid') bg-green-500 
-                                        @elseif($request->status === 'payment_required') bg-yellow-500 
+                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full
+                                        @if($request->payment->status === 'paid') bg-green-500
                                         @else bg-gray-400 @endif
                                         flex items-center justify-center">
                                         <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -289,17 +286,17 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="text-sm font-medium text-gray-900">Payment 
-                                            @if($request->payment && $request->payment->status === 'paid') Completed @else Required @endif
+                                        <h4 class="text-sm font-medium text-gray-900">Payment
+                                            @if($request->payment->status === 'paid') Completed @else Required @endif
                                         </h4>
-                                        @if($request->payment && $request->payment->paid_at)
+                                        @if($request->payment->paid_at)
                                             <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($request->payment->paid_at)->format('M d, Y h:i A') }}</p>
                                         @else
                                             <p class="text-xs text-gray-500">{{ now()->format('M d, Y') }}</p>
                                         @endif
-                                        
+
                                         <p class="mt-1 text-sm text-gray-600">
-                                            @if($request->payment && $request->payment->status === 'paid')
+                                            @if($request->payment->status === 'paid')
                                                 Payment of ₱{{ number_format($request->payment->amount, 2) }} has been received.
                                             @else
                                                 Payment of ₱{{ number_format($request->service->fee, 2) }} is required to proceed.
@@ -308,13 +305,13 @@
                                     </div>
                                 </div>
                                 @endif
-                                
+
                                 <!-- Status Item: Processing (if applicable) -->
                                 @if(in_array($request->status, ['processing', 'ready_for_pickup', 'completed']))
                                 <div class="relative">
-                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full 
-                                        @if(in_array($request->status, ['ready_for_pickup', 'completed'])) bg-green-500 
-                                        @elseif($request->status === 'processing') bg-blue-500 
+                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full
+                                        @if(in_array($request->status, ['ready_for_pickup', 'completed'])) bg-green-500
+                                        @elseif($request->status === 'processing') bg-blue-500
                                         @else bg-gray-400 @endif
                                         flex items-center justify-center">
                                         <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -334,13 +331,13 @@
                                     </div>
                                 </div>
                                 @endif
-                                
+
                                 <!-- Status Item: Ready for Pickup (if applicable) -->
                                 @if(in_array($request->status, ['ready_for_pickup', 'completed']))
                                 <div class="relative">
-                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full 
-                                        @if($request->status === 'completed') bg-green-500 
-                                        @elseif($request->status === 'ready_for_pickup') bg-green-500 
+                                    <div class="absolute top-1.5 -left-8 h-7 w-7 rounded-full
+                                        @if($request->status === 'completed') bg-green-500
+                                        @elseif($request->status === 'ready_for_pickup') bg-green-500
                                         @else bg-gray-400 @endif
                                         flex items-center justify-center">
                                         <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -360,7 +357,7 @@
                                     </div>
                                 </div>
                                 @endif
-                                
+
                                 <!-- Status Item: Completed (if applicable) -->
                                 @if($request->status === 'completed')
                                 <div class="relative">
@@ -382,7 +379,7 @@
                                     </div>
                                 </div>
                                 @endif
-                                
+
                                 <!-- Status Item: Cancelled/Rejected (if applicable) -->
                                 @if($request->status === 'cancelled' || $request->status === 'rejected')
                                 <div class="relative">
@@ -395,15 +392,15 @@
                                         <h4 class="text-sm font-medium text-gray-900">{{ ucfirst($request->status) }}</h4>
                                         <p class="text-xs text-gray-500">{{ $request->updated_at->format('M d, Y h:i A') }}</p>
                                         <p class="mt-1 text-sm text-gray-600">
-                                            {{ $request->remarks ?? 
-                                                ($request->status === 'cancelled' ? 'This request has been cancelled.' : 'This request has been rejected.') 
+                                            {{ $request->remarks ??
+                                                ($request->status === 'cancelled' ? 'This request has been cancelled.' : 'This request has been rejected.')
                                             }}
                                         </p>
                                     </div>
                                 </div>
                                 @endif
                             </div>
-                            
+
                             <!-- Timeline Empty State -->
                             @if($request->status === 'pending' && !$request->payment)
                                 <div class="mt-4 text-sm text-gray-500 text-center">
@@ -413,13 +410,13 @@
                             @endif
                         </div>
                     </div>
-                    
+
                     <!-- Payment Section (if applicable) -->
                     @if($request->status === 'payment_required' || $request->payment)
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Information</h3>
-                            
+
                             @if($request->payment && ($request->payment->status === 'paid' || $request->payment->status === 'waived'))
                                 <!-- Payment completed -->
                                 <div class="bg-green-50 border-l-4 border-green-400 p-4">
@@ -440,7 +437,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mt-4">
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
@@ -541,28 +538,28 @@
                         </div>
                     </div>
                     @endif
-                    
+
                     <!-- Quick Actions -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                            
+
                             <div class="space-y-3">
                                 <a href="{{ route('requests.track', $request->id) }}" class="block w-full text-center px-4 py-2 bg-blue-600 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700">
                                     Track This Request
-                                </a>                                
+                                </a>
                                 <a href="{{ route('requests.index') }}" class="block w-full text-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
                                     View All Requests
                                 </a>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Need Help? -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
                         <div class="p-6">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">Need Help?</h3>
-                            
+
                             <div class="space-y-3">
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0">
