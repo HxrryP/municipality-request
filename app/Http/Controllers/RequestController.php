@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreServiceRequestRequest;
 use App\Models\Request;
 use App\Models\Service;
-use App\Models\Notification;
+use App\Models\Notification as Notificationmodel;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Notifications\UserNotification;
+use Illuminate\Support\Facades\Notification;
+
 
 class RequestController extends Controller
 {
@@ -146,7 +149,7 @@ class RequestController extends Controller
             ]);
 
             // Create a notification for the user
-            Notification::create([
+            Notificationmodel::create([
                 'user_id' => Auth::id(),
                 'request_id' => $newRequest->id,
                 'title' => 'Request Submitted',
@@ -156,14 +159,22 @@ class RequestController extends Controller
                 'sent_at' => now(),
             ]);
 
-            DB::commit();
+                    // === Add the provided notification and email logic here ===
 
-            // Send an email notification to the user
-            try {
-                Auth::user()->notify(new \App\Notifications\RequestSubmitted($newRequest));
-            } catch (\Exception $e) {
-                Log::error('Failed to send email notification: ' . $e->getMessage());
-            }
+        // Send a notification using UserNotification
+        $user = auth()->user(); // Get the logged-in user
+        $subject = 'Request Submitted Successfully';
+        $message = 'Your request for the service has been successfully submitted. You can track it in your account.';
+        Notification::send($user, new UserNotification($subject, $message));
+
+        // Send an email notification to the user
+        try {
+            Auth::user()->notify(new \App\Notifications\RequestSubmitted($newRequest));
+        } catch (\Exception $e) {
+            Log::error('Failed to send email notification: ' . $e->getMessage());
+        }
+
+            DB::commit();
 
             // Redirect based on the initial status
             if ($initialStatus === 'payment_required') {

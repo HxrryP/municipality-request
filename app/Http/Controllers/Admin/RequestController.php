@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Request as ServiceRequest;
-use App\Models\Notification;
+use App\Models\Notification as NotificationModel;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Notifications\PaymentRequired;
+use Illuminate\Support\Facades\Log;
+use App\Notifications\UserNotification;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\RequestStatusUpdated;
 
 class RequestController extends Controller
 {
@@ -89,7 +91,7 @@ class RequestController extends Controller
         ]);
 
         // Create notification for the user
-        Notification::create([
+        $notification = NotificationModel::create([
             'user_id' => $request->user_id,
             'request_id' => $request->id,
             'title' => 'Request Status Updated',
@@ -98,6 +100,19 @@ class RequestController extends Controller
             'is_sent' => true,
             'sent_at' => now(),
         ]);
+
+        // === Add provided notification and email logic here ===
+
+        // Get the user
+        $user = $request->user;
+
+        // Send a system notification
+        $subject = 'Request Status Updated';
+        $message = "Your request for {$request->service->name} has been updated to " . ucfirst(str_replace('_', ' ', $validated['status'])) . ".";
+        if (!empty($validated['remarks'])) {
+            $message .= " Remarks: {$validated['remarks']}";
+        }
+        Notification::send($user, new UserNotification($subject, $message));
 
         // If status changed to completed, record the completion date
         if ($validated['status'] === 'completed' && $oldStatus !== 'completed') {

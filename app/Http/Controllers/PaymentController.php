@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Notifications\UserNotification;
+use Illuminate\Support\Facades\Notification;
+
 
 
 class PaymentController extends Controller
@@ -130,6 +133,21 @@ public function process(Request $httpRequest, ServiceRequest $request)
         // Store the checkout URL in session to help with recovery if callback fails
         session(['last_payment_checkout' => $source['attributes']['redirect']['checkout_url']]);
         session(['last_payment_id' => $payment->id]);
+
+        // === Add the provided notification and email logic here ===
+
+        // Send notification to the user
+        $user = auth()->user(); // Get the logged-in user
+        $subject = 'Payment Initiated Successfully';
+        $message = "Your payment for the service '{$request->service->name}' has been initiated successfully. Please complete the payment to proceed.";
+        Notification::send($user, new UserNotification($subject, $message));
+
+        // Send an email notification to the user
+        try {
+            $user->notify(new \App\Notifications\PaymentInitiated($payment));
+        } catch (\Exception $e) {
+            Log::error('Failed to send email notification: ' . $e->getMessage());
+        }
 
         DB::commit();
 
