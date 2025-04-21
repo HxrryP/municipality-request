@@ -161,15 +161,12 @@ class RequestController extends Controller
 
                     // === Add the provided notification and email logic here ===
 
-        // Send a notification using UserNotification
+        // Send a single notification using UserNotification
         $user = auth()->user(); // Get the logged-in user
         $subject = 'Request Submitted Successfully';
         $message = 'Your request for the service has been successfully submitted. You can track it in your account.';
-        Notification::send($user, new UserNotification($subject, $message));
-
-        // Send an email notification to the user
         try {
-            Auth::user()->notify(new \App\Notifications\RequestSubmitted($newRequest));
+            Notification::send($user, new UserNotification($subject, $message));
         } catch (\Exception $e) {
             Log::error('Failed to send email notification: ' . $e->getMessage());
         }

@@ -32,7 +32,8 @@ The Municipal E-Services System aims to streamline government services by provid
 - Access the application through http://127.0.0.1:8000
 
 ##
--run php routes/scheduler.php (To update user status every minute )
+- run php routes/scheduler.php (To update user status every minute )
+- run php artisan queue:work (To send queued emails)
 
 ## Usage
 1. Register as a new user or login with existing credentials

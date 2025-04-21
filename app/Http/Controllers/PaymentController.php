@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Notifications\UserNotification;
 use Illuminate\Support\Facades\Notification;
+use App\Notifications\PaymentSuccessful;
 
 
 
@@ -137,17 +138,17 @@ public function process(Request $httpRequest, ServiceRequest $request)
         // === Add the provided notification and email logic here ===
 
         // Send notification to the user
-        $user = auth()->user(); // Get the logged-in user
-        $subject = 'Payment Initiated Successfully';
-        $message = "Your payment for the service '{$request->service->name}' has been initiated successfully. Please complete the payment to proceed.";
-        Notification::send($user, new UserNotification($subject, $message));
+        // $user = auth()->user(); // Get the logged-in user
+        // $subject = 'Payment Initiated Successfully';
+        // $message = "Your payment for the service '{$request->service->name}' has been initiated successfully. Please complete the payment to proceed.";
+        // Notification::send($user, new UserNotification($subject, $message));
 
-        // Send an email notification to the user
-        try {
-            $user->notify(new \App\Notifications\PaymentInitiated($payment));
-        } catch (\Exception $e) {
-            Log::error('Failed to send email notification: ' . $e->getMessage());
-        }
+        // // Send an email notification to the user
+        // try {
+        //     $user->notify(new \App\Notifications\PaymentInitiated($payment));
+        // } catch (\Exception $e) {
+        //     Log::error('Failed to send email notification: ' . $e->getMessage());
+        // }
 
         DB::commit();
 
@@ -193,7 +194,7 @@ public function success(Request $httpRequest)
     if (!$sourceId) {
         // Try to find the most recent pending payment for the logged-in user
         $payment = Payment::where('status', 'pending')
-            ->whereHas('request', function($query) {
+            ->whereHas('request', function ($query) {
                 $query->where('user_id', Auth::id());
             })
             ->latest()
@@ -246,8 +247,8 @@ public function success(Request $httpRequest)
                 'status' => 'processing',
             ]);
 
-                        // Clear session data related to payment
-                        session()->forget(['last_payment_id', 'last_payment_checkout']);
+            // Clear session data related to payment
+            session()->forget(['last_payment_id', 'last_payment_checkout']);
 
             // Create notification
             \App\Models\Notification::create([
@@ -259,6 +260,13 @@ public function success(Request $httpRequest)
                 'is_sent' => true,
                 'sent_at' => now(),
             ]);
+
+            // === Send Email Notification to the User ===
+            try {
+                Auth::user()->notify(new \App\Notifications\PaymentSuccessful($payment, $request));
+            } catch (\Exception $e) {
+                Log::error('Failed to send email notification: ' . $e->getMessage());
+            }
 
             return redirect()->route('requests.show', $request)
                 ->with('success', 'Payment successful! Your request is now being processed.');
@@ -284,7 +292,6 @@ public function success(Request $httpRequest)
             ->with('error', 'There was an error processing your payment. Please contact support.');
     }
 }
-
  /**
  * Handle failed payment callback
  */
