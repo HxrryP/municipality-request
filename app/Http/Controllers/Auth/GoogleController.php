@@ -4,16 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\Request;
 
 class GoogleController extends Controller
 {
     /**
-     * Redirect to Google OAuth
+     * Redirect to Google OAuth.
      */
     public function redirectToGoogle()
     {
@@ -21,44 +19,38 @@ class GoogleController extends Controller
     }
 
     /**
-     * Handle Google OAuth callback
+     * Handle Google OAuth callback.
      */
     public function handleGoogleCallback()
     {
         try {
-            $user = Socialite::driver('google')->user();
+            $googleUser = Socialite::driver('google')->stateless()->user();
 
-            // Check if user exists
-            $existingUser = User::where('email', $user->email)->first();
+            // Check if user already exists
+            $user = User::where('email', $googleUser->getEmail())->first();
 
-            if ($existingUser) {
-                // Update Google ID if not set
-                if (!$existingUser->google_id) {
-                    $existingUser->update([
-                        'google_id' => $user->id,
-                        'profile_photo' => $user->avatar,
-                    ]);
-                }
-
-                Auth::login($existingUser);
+            if ($user) {
+                // User exists, log them in
+                Auth::login($user);
             } else {
-                // Create new user
-                $newUser = User::create([
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'google_id' => $user->id,
-                    'password' => Hash::make(uniqid()), // Random password
-                    'email_verified_at' => now(), // Email already verified by Google
-                    'profile_photo' => $user->avatar,
+                // Register the new user
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'mobile_number' => $googleUser->user['phoneNumbers'][0]['value'] ?? null,
+                    'address' => $googleUser->user['addresses'][0]['formatted'] ?? null,
+                    'birthdate' => $googleUser->user['birthdays'][0]['date']['birthDate'] ?? null,
+                    'password' => bcrypt(uniqid()), // Generate a random password
                 ]);
 
-                Auth::login($newUser);
+                Auth::login($user);
             }
 
-            return redirect()->intended('/dashboard');
-            
-        } catch (Exception $e) {
-            return redirect('/login')->with('error', 'Google authentication failed: ' . $e->getMessage());
+            return redirect()->route('dashboard')->with('success', 'Logged in successfully using Google!');
+        } catch (\Exception $e) {
+            return redirect()->route('login')->with('error', 'Failed to authenticate with Google. Please try again.');
         }
     }
 }

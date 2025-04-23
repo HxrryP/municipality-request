@@ -29,6 +29,14 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // Check if the user's email is verified
+        if (!Auth::user()->hasVerifiedEmail()) {
+            Auth::logout(); // Log the user out
+            return redirect()->route('login')->withErrors([
+                'email' => 'You must verify your email address before logging in.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         // Redirect based on user role
@@ -38,6 +46,8 @@ class AuthenticatedSessionController extends Controller
 
         return redirect()->intended(RouteServiceProvider::HOME);
     }
+
+
 
     /**
      * Destroy an authenticated session.

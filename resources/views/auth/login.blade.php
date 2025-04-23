@@ -4,9 +4,9 @@
             <div class="flex justify-center mb-4">
                 <img src="{{ asset('images/anilao_logo_720x720.png') }}" alt="Municipality of Anilao" class="h-12 sm:h-14">
             </div>
-            
+
             <h2 class="text-center text-lg sm:text-xl font-bold text-gray-800 mb-5">Welcome Back</h2>
-            
+
             <!-- Session Status -->
             @if (session('status'))
                 <div class="bg-green-50 text-green-800 p-3 rounded-lg mb-4 border border-green-200 text-sm">
@@ -34,7 +34,7 @@
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
-                    Sign in with Google
+                    <a href="{{ route('auth.google') }}">Sign in with Google</a>
                 </button>
             </div>
 
@@ -80,15 +80,15 @@
                     </button>
                 </div>
             </form>
-            
+
             <div class="mt-4 text-center text-sm sm:text-xs text-gray-600">
-                Don't have an account? 
+                Don't have an account?
                 <a href="{{ route('register') }}" class="font-medium text-blue-600 hover:text-blue-500">
                     Sign up
                 </a>
             </div>
         </div>
-        
+
         <div class="mt-4 text-center text-xs text-gray-500">
             © {{ date('Y') }} Municipality of Anilao
         </div>
