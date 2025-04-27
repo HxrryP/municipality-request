@@ -205,7 +205,6 @@
                     </div>
                 </div>
                 
-                <!-- Document Upload Section -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 md:p-8">
                         <div class="flex items-center mb-6">
@@ -214,7 +213,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-medium text-gray-900">Required Documents</h3>
+                            <h3 class="text-lg font-medium text-gray-900">Upload All Required Documents</h3>
                         </div>
                         
                         <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
@@ -238,39 +237,28 @@
                             </div>
                         </div>
 
-                        <div class="space-y-6">
-                            @foreach($service->requirements as $index => $requirement)
-                                <div class="bg-white rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-sm">
-                                    <label for="document_{{ $index }}" class="block text-sm font-medium text-gray-900 mb-1">{{ $requirement }}</label>
-                                    <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                                        <div class="space-y-1 text-center">
-                                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                            </svg>
-                                            <div class="flex text-sm text-gray-600">
-                                                <label for="document_{{ $index }}" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                                    <span>Upload a file</span>
-                                                    <input id="document_{{ $index }}" name="documents[{{ $index }}]" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png" required>
-                                                </label>
-                                                <p class="pl-1">or drag and drop</p>
-                                            </div>
-                                            <p class="text-xs text-gray-500">PDF, PNG, JPG up to 2MB</p>
-                                        </div>
+                        <!-- Multiple File Input -->
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-sm">
+                            <label for="documents" class="block text-sm font-medium text-gray-900 mb-1">Upload Documents</label>
+                            <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="documents" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                            <span>Upload files</span>
+                                            <input id="documents" name="documents[]" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <div class="document-preview-{{ $index }} hidden mt-2">
-                                        <div class="flex items-center p-2 bg-blue-50 rounded-md">
-                                            <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                            </svg>
-                                            <span class="text-sm text-gray-700 document-name-{{ $index }}"></span>
-                                            <button type="button" class="ml-auto text-sm text-red-600 hover:text-red-900" onclick="removeFile({{ $index }})">Remove</button>
-                                        </div>
-                                    </div>
-                                    @error('documents.' . $index)
-                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
+                                    <p class="text-xs text-gray-500">PDF, PNG, JPG up to 2MB each</p>
                                 </div>
-                            @endforeach
+                            </div>
+                            <div id="file-preview-container" class="mt-4 space-y-2"></div>
+                            @error('documents')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -310,33 +298,55 @@
     </div>
 
     <script>
-        // File upload preview
         document.addEventListener('DOMContentLoaded', function() {
-            @foreach($service->requirements as $index => $requirement)
-                document.getElementById('document_{{ $index }}').addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const preview = document.querySelector('.document-preview-{{ $index }}');
-                        const nameElement = document.querySelector('.document-name-{{ $index }}');
-                        
-                        preview.classList.remove('hidden');
-                        nameElement.textContent = file.name;
-                        
-                        // File size validation
-                        if (file.size > 2 * 1024 * 1024) { // 2MB
-                            alert('File size exceeds 2MB limit. Please choose a smaller file.');
-                            this.value = '';
-                            preview.classList.add('hidden');
-                        }
+            const fileInput = document.getElementById('documents');
+            const previewContainer = document.getElementById('file-preview-container');
+            const uploadedFiles = new Set();
+
+            fileInput.addEventListener('change', function(event) {
+                previewContainer.innerHTML = ''; // Clear previous previews
+
+                Array.from(event.target.files).forEach(file => {
+                    const fileId = `${file.name}-${file.size}-${file.lastModified}`;
+
+                    // Check for duplicates
+                    if (uploadedFiles.has(fileId)) {
+                        alert(`Duplicate file detected: ${file.name}`);
+                        return;
                     }
+
+                    // Add file to the set
+                    uploadedFiles.add(fileId);
+
+                    // Create file preview
+                    const filePreview = document.createElement('div');
+                    filePreview.className = 'flex items-center p-2 bg-gray-100 rounded-md';
+
+                    const fileName = document.createElement('span');
+                    fileName.className = 'text-sm text-gray-700';
+                    fileName.textContent = file.name;
+
+                    const removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'ml-auto text-sm text-red-600 hover:text-red-900';
+                    removeButton.textContent = 'Remove';
+
+                    removeButton.addEventListener('click', () => {
+                        uploadedFiles.delete(fileId);
+                        filePreview.remove();
+
+                        // Remove file from input
+                        const newFiles = Array.from(fileInput.files).filter(f => f !== file);
+                        const dataTransfer = new DataTransfer();
+                        newFiles.forEach(f => dataTransfer.items.add(f));
+                        fileInput.files = dataTransfer.files;
+                    });
+
+                    filePreview.appendChild(fileName);
+                    filePreview.appendChild(removeButton);
+                    previewContainer.appendChild(filePreview);
                 });
-            @endforeach
+            });
         });
-        
-        function removeFile(index) {
-            const fileInput = document.getElementById('document_' + index);
-            fileInput.value = '';
-            document.querySelector('.document-preview-' + index).classList.add('hidden');
-        }
     </script>
 </x-app-layout>

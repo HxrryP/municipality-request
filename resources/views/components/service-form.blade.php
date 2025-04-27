@@ -500,3 +500,42 @@
         }
     });
 </script>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Store uploaded files to detect duplicates
+            const uploadedFiles = new Set();
+
+            // Get the file input and error container
+            const fileInput = document.getElementById('business_documents');
+            const errorContainer = document.getElementById('business_documents_error');
+            
+
+            fileInput.addEventListener('change', function (event) {
+                // Clear any previous errors
+                errorContainer.classList.add('hidden');
+                errorContainer.textContent = '';
+
+                const files = event.target.files;
+
+                // Check for duplicates
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileIdentifier = `${file.name}-${file.size}-${file.lastModified}`;
+
+                    if (uploadedFiles.has(fileIdentifier)) {
+                        // Show error message
+                        errorContainer.textContent = `Error: Duplicate file "${file.name}" detected.`;
+                        errorContainer.classList.remove('hidden');
+
+                        // Reset the file input value to prevent submission
+                        fileInput.value = '';
+                        return;
+                    }
+
+                    // Add file to the set
+                    uploadedFiles.add(fileIdentifier);
+                }
+            });
+        });
+    </script>

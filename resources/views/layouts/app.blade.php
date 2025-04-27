@@ -84,4 +84,8 @@
         </footer>
     </div>
 </body>
+
+<!-- Add before closing body tag -->
+<script src="{{ asset('js/duplicate-document-validator.js') }}"></script>
+
 </html>
