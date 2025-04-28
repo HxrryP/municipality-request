@@ -72,39 +72,48 @@ class RequestController extends Controller
     {
         try {
             DB::beginTransaction();
-
+    
             // Get validated data
             $validated = $request->validated();
-
+    
+            // Retrieve existing request if applicable
+            $existingRequest = Request::where('user_id', Auth::id())
+                ->where('service_id', $service->id)
+                ->latest()
+                ->first();
+    
+            // Retrieve existing document URLs if any
+            $existingDocumentUrls = $existingRequest ? $existingRequest->document_urls : [];
+            $documentUrls = is_array($existingDocumentUrls) ? $existingDocumentUrls : [];
+    
             // Handle file uploads with duplicate prevention
-            $documentUrls = [];
             $documentHashes = [];
             if ($request->hasFile('documents')) {
                 foreach ($request->file('documents') as $key => $file) {
                     // Calculate file hash to prevent duplicates
                     $fileHash = hash_file('sha256', $file->getRealPath());
-
+    
                     // Check if the file is already uploaded
                     if (in_array($fileHash, $documentHashes)) {
                         DB::rollBack();
                         return back()->withInput()->with('error', 'Duplicate document detected. Please remove duplicates and try again.');
                     }
-
+    
                     $documentHashes[] = $fileHash;
-
+    
                     // Store the file
                     $path = $file->store('documents/' . Str::slug($service->name), 'public');
-                    $documentUrls[$key] = $path;
+                    $documentUrls[] = $path; // Append the new file path to the array
                 }
             }
-
+    
             // Determine if this is a renewal
             $isRenewal = false;
             $previousRequestId = null;
-
+    
             if (Str::contains($service->slug, 'renewal')) {
                 $isRenewal = true;
-
+    
                 // Try to find the previous request for renewal
                 if (!empty($validated['form_data']['previous_request_id'])) {
                     $previousRequestId = $validated['form_data']['previous_request_id'];
@@ -112,42 +121,51 @@ class RequestController extends Controller
                     // Try to find the most recent completed request of the same service type
                     $baseSlug = Str::beforeLast($service->slug, '-renewal');
                     $baseService = Service::where('slug', $baseSlug)->first();
-
+    
                     if ($baseService) {
                         $previousRequest = Request::where('user_id', Auth::id())
                             ->where('service_id', $baseService->id)
                             ->where('status', 'completed')
                             ->latest()
                             ->first();
-
+    
                         if ($previousRequest) {
                             $previousRequestId = $previousRequest->id;
                         }
                     }
                 }
             }
-
+    
             // Determine the initial status of the request
             $initialStatus = 'pending';
-
+    
             if ($service->requiresPayment()) {
                 $initialStatus = 'payment_required';
             } elseif (!$service->requires_approval) {
                 $initialStatus = 'processing';
             }
-
-            // Create a new request
-            $newRequest = Request::create([
-                'user_id' => Auth::id(),
-                'service_id' => $service->id,
-                'tracking_number' => 'REQ-' . date('Ymd') . '-' . strtoupper(Str::random(6)),
-                'status' => $initialStatus,
-                'form_data' => $validated['form_data'],
-                'document_urls' => $documentUrls,
-                'is_renewal' => $isRenewal,
-                'previous_request_id' => $previousRequestId,
-            ]);
-
+    
+            // Create or update the request
+            if ($existingRequest) {
+                // Update existing request with new document URLs
+                $existingRequest->update([
+                    'document_urls' => $documentUrls,
+                ]);
+                $newRequest = $existingRequest;
+            } else {
+                // Create a new request
+                $newRequest = Request::create([
+                    'user_id' => Auth::id(),
+                    'service_id' => $service->id,
+                    'tracking_number' => 'REQ-' . date('Ymd') . '-' . strtoupper(Str::random(6)),
+                    'status' => $initialStatus,
+                    'form_data' => $validated['form_data'],
+                    'document_urls' => $documentUrls,
+                    'is_renewal' => $isRenewal,
+                    'previous_request_id' => $previousRequestId,
+                ]);
+            }
+    
             // Create a notification for the user
             Notificationmodel::create([
                 'user_id' => Auth::id(),
@@ -158,27 +176,25 @@ class RequestController extends Controller
                 'is_sent' => true,
                 'sent_at' => now(),
             ]);
-
-                    // === Add the provided notification and email logic here ===
-
-        // Send a single notification using UserNotification
-        $user = auth()->user(); // Get the logged-in user
-        $subject = 'Request Submitted Successfully';
-        $message = 'Your request for the service has been successfully submitted. You can track it in your account.';
-        try {
-            Notification::send($user, new UserNotification($subject, $message));
-        } catch (\Exception $e) {
-            Log::error('Failed to send email notification: ' . $e->getMessage());
-        }
-
+    
+            // Send User Notification
+            $user = auth()->user();
+            $subject = 'Request Submitted Successfully';
+            $message = 'Your request for the service has been successfully submitted. You can track it in your account.';
+            try {
+                Notification::send($user, new UserNotification($subject, $message));
+            } catch (\Exception $e) {
+                Log::error('Failed to send email notification: ' . $e->getMessage());
+            }
+    
             DB::commit();
-
+    
             // Redirect based on the initial status
             if ($initialStatus === 'payment_required') {
                 return redirect()->route('payments.show', $newRequest)
                     ->with('success', 'Your request has been submitted successfully. Please complete the payment to proceed.');
             }
-
+    
             return redirect()->route('requests.show', $newRequest)
                 ->with('success', 'Your request has been submitted successfully.');
         } catch (\Exception $e) {

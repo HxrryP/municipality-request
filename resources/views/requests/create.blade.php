@@ -216,53 +216,85 @@
                             <h3 class="text-lg font-medium text-gray-900">Upload All Required Documents</h3>
                         </div>
                         
-                        <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-gray-700">Document Guidelines</h3>
-                                    <div class="mt-2 text-sm text-gray-600">
-                                        <ul class="list-disc space-y-1 pl-5">
-                                            <li>Upload clear scanned copies or photos of your documents</li>
-                                            <li>Accepted formats: PDF, JPG, PNG (max 2MB each)</li>
-                                            <li>Ensure all information is clearly visible</li>
-                                            <li>Documents must not be expired</li>
-                                        </ul>
-                                    </div>
+                        <div class="py-6 md:py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Redesigned Upload Section -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Upload Documents</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-gray-700">Document Guidelines</h3>
+                                <div class="mt-2 text-sm text-gray-600">
+                                    <ul class="list-disc space-y-1 pl-5">
+                                        <li>Upload clear scanned copies or photos of your documents</li>
+                                        <li>Accepted formats: PDF, JPG, PNG (max 2MB each)</li>
+                                        <li>Ensure all information is clearly visible</li>
+                                        <li>Documents must not be expired</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Multiple File Input -->
-                        <div class="bg-white rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-sm">
-                            <label for="documents" class="block text-sm font-medium text-gray-900 mb-1">Upload Documents</label>
-                            <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                                <div class="space-y-1 text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                    </svg>
-                                    <div class="flex text-sm text-gray-600">
-                                        <label for="documents" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                                            <span>Upload files</span>
-                                            <input id="documents" name="documents[]" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png" multiple>
-                                        </label>
-                                        <p class="pl-1">or drag and drop</p>
-                                    </div>
-                                    <p class="text-xs text-gray-500">PDF, PNG, JPG up to 2MB each</p>
-                                </div>
-                            </div>
-                            <div id="file-preview-container" class="mt-4 space-y-2"></div>
-                            @error('documents')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                    <div class="py-6 md:py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Redesigned Upload Section -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Upload Documents</h3>
+                    <div id="upload-section" class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <!-- Drag-and-Drop Area -->
+                        <div class="flex justify-center items-center w-full">
+                            <label for="documents" class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 transition">
+                                <svg class="w-10 h-10 text-gray-400 mb-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18M3 12h18M14 3l3.5 3.5M14 21l3.5-3.5M10 3l3.5 3.5M10 21l3.5-3.5" />
+                                </svg>
+                                <span class="text-gray-600 text-sm">Drag and drop files here or click to upload</span>
+                                <input id="documents" name="documents[]" type="file" class="sr-only" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple>
+                            </label>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">Accepted file types: JPEG, PNG, PDF, DOC, DOCX (max size: 50MB)</p>
+
+                        <!-- Error Message -->
+                        <div id="error-message" class="mt-2 text-sm text-red-600 hidden"></div>
+
+                        <!-- Progress Section -->
+                        <div id="file-upload-progress" class="mt-4 space-y-4">
+                            <!-- Progress Items will be dynamically added here -->
                         </div>
                     </div>
                 </div>
+            </div>
 
+                        <!-- Existing Documents -->
+                        @if(isset($request->document_urls) && count($request->document_urls) > 0)
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl">
+                            <div class="p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Submitted Documents</h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    @foreach($request->document_urls as $index => $url)
+                                    <div class="border border-gray-200 rounded-md overflow-hidden">
+                                        <div class="bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">Document {{ $index + 1 }}</div>
+                                        <div class="p-4 flex flex-col space-y-2">
+                                            <a href="{{ asset('storage/' . $url) }}" target="_blank" class="text-blue-600 hover:underline">
+                                                View Document
+                                            </a>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
                 <!-- Agreement and Submit -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 md:p-8">
@@ -298,15 +330,16 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const fileInput = document.getElementById('documents');
-            const previewContainer = document.getElementById('file-preview-container');
-            const uploadedFiles = new Set();
+            const progressContainer = document.getElementById('file-upload-progress');
+            const uploadedFiles = new Set(); // Set to store file hashes (for duplication detection)
 
-            fileInput.addEventListener('change', function(event) {
-                previewContainer.innerHTML = ''; // Clear previous previews
+            fileInput.addEventListener('change', function (event) {
+                const files = event.target.files;
 
-                Array.from(event.target.files).forEach(file => {
+                Array.from(files).forEach((file, index) => {
+                    // Generate a unique identifier for the file (hash)
                     const fileId = `${file.name}-${file.size}-${file.lastModified}`;
 
                     // Check for duplicates
@@ -315,36 +348,70 @@
                         return;
                     }
 
-                    // Add file to the set
+                    // Add the file to the uploadedFiles set
                     uploadedFiles.add(fileId);
 
-                    // Create file preview
-                    const filePreview = document.createElement('div');
-                    filePreview.className = 'flex items-center p-2 bg-gray-100 rounded-md';
+                    // Create progress item
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'flex items-center space-x-4';
 
-                    const fileName = document.createElement('span');
-                    fileName.className = 'text-sm text-gray-700';
-                    fileName.textContent = file.name;
+                    // File details
+                    const fileDetails = document.createElement('div');
+                    fileDetails.className = 'flex-1';
+                    fileDetails.innerHTML = `
+                        <p class="text-sm font-medium text-gray-700">${file.name}</p>
+                        <p class="text-xs text-gray-400">${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                    `;
 
+                    // Progress bar
+                    const progressBarContainer = document.createElement('div');
+                    progressBarContainer.className = 'flex items-center space-x-2 w-full';
+
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'w-full bg-gray-200 rounded-lg h-2 relative';
+                    const progressFill = document.createElement('div');
+                    progressFill.className = 'absolute bg-blue-500 h-2 rounded-lg';
+                    progressFill.style.width = '0%';
+
+                    progressBar.appendChild(progressFill);
+                    progressBarContainer.appendChild(progressBar);
+
+                    // Progress percentage
+                    const progressPercentage = document.createElement('span');
+                    progressPercentage.className = 'text-xs text-gray-500';
+                    progressPercentage.textContent = '0%';
+
+                    progressBarContainer.appendChild(progressPercentage);
+
+                    // Remove button
                     const removeButton = document.createElement('button');
-                    removeButton.type = 'button';
-                    removeButton.className = 'ml-auto text-sm text-red-600 hover:text-red-900';
-                    removeButton.textContent = 'Remove';
+                    removeButton.className = 'text-red-500 hover:text-red-700';
+                    removeButton.textContent = '✖';
 
                     removeButton.addEventListener('click', () => {
-                        uploadedFiles.delete(fileId);
-                        filePreview.remove();
-
-                        // Remove file from input
-                        const newFiles = Array.from(fileInput.files).filter(f => f !== file);
-                        const dataTransfer = new DataTransfer();
-                        newFiles.forEach(f => dataTransfer.items.add(f));
-                        fileInput.files = dataTransfer.files;
+                        uploadedFiles.delete(fileId); // Remove file from the set
+                        fileItem.remove();
                     });
 
-                    filePreview.appendChild(fileName);
-                    filePreview.appendChild(removeButton);
-                    previewContainer.appendChild(filePreview);
+                    // Assemble progress item
+                    fileItem.appendChild(fileDetails);
+                    fileItem.appendChild(progressBarContainer);
+                    fileItem.appendChild(removeButton);
+                    progressContainer.appendChild(fileItem);
+
+                    // Simulate file upload
+                    const simulateUpload = setInterval(() => {
+                        let currentWidth = parseInt(progressFill.style.width);
+                        if (currentWidth < 100) {
+                            currentWidth += 10;
+                            progressFill.style.width = `${currentWidth}%`;
+                            progressPercentage.textContent = `${currentWidth}%`;
+                        } else {
+                            clearInterval(simulateUpload);
+                            progressFill.style.backgroundColor = 'green';
+                            progressPercentage.textContent = 'Uploaded';
+                        }
+                    }, 200);
                 });
             });
         });
